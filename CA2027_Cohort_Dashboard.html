@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA-2027 Cohort · Tulane Anesthesiology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --navy: #0f1e36;
+  --navy-mid: #1a2d4a;
+  --navy-light: #243d62;
+  --blue: #2a6db5;
+  --blue-bright: #3b8bdf;
+  --blue-pale: #d4e6f7;
+  --gold: #c9a84c;
+  --gold-light: #f4e4b8;
+  --text: #e8edf5;
+  --text-muted: #7a92b0;
+  --text-dim: #4a6280;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.14);
+  --green: #2d9e6b;
+  --green-light: #c8f0df;
+  --amber: #c9893a;
+  --amber-light: #f5e4cc;
+  --red: #c94040;
+  --red-light: #f5cccc;
+  --surface: rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.07);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.shell { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--navy-mid);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo .institution {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.sidebar-logo .report-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  color: var(--text);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.sidebar-logo .badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: rgba(201,168,76,.15);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,.3);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.nav-section {
+  padding: 16px 12px 8px;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  user-select: none;
+}
+
+.nav-item:hover { color: var(--text); background: var(--surface); }
+.nav-item.active { color: var(--blue-bright); border-left-color: var(--blue-bright); background: rgba(59,139,223,.08); font-weight: 500; }
+
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .5;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-dot { opacity: 1; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── Main ── */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--border);
+  padding: 0 36px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.topbar-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+.pill-blue { background: rgba(42,109,181,.2); color: #6aaff0; border: 1px solid rgba(42,109,181,.3); }
+.pill-gold { background: rgba(201,168,76,.15); color: var(--gold); border: 1px solid rgba(201,168,76,.25); }
+.pill-red { background: rgba(201,64,64,.15); color: #f08080; border: 1px solid rgba(201,64,64,.25); }
+.pill-green { background: rgba(45,158,107,.15); color: #6ad6a0; border: 1px solid rgba(45,158,107,.25); }
+.pill-amber { background: rgba(201,137,58,.15); color: #f0b06a; border: 1px solid rgba(201,137,58,.25); }
+
+.content {
+  padding: 36px;
+  max-width: 1200px;
+}
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeUp .2s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Section header ── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  max-width: 620px;
+}
+
+/* ── Stat cards ── */
+.stat-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.stat-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.stat-grid-5 { grid-template-columns: repeat(5, 1fr); }
+.stat-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.stat-grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  transition: border-color .15s;
+}
+.stat-card:hover { border-color: var(--border-bright); }
+
+.stat-label {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.stat-card.highlight { border-color: rgba(201,168,76,.3); background: rgba(201,168,76,.06); }
+.stat-card.highlight .stat-value { color: var(--gold); }
+
+/* ── Charts ── */
+.chart-grid { display: grid; gap: 20px; margin-bottom: 28px; }
+.chart-grid-2 { grid-template-columns: 1fr 1fr; }
+.chart-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.chart-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.chart-title {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.chart-wrap { position: relative; }
+
+/* ── Tables ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 12.5px;
+}
+
+.data-table th {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-bright);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--surface-hover); color: var(--text); }
+
+.data-table .res-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.data-table .num {
+  font-family: 'DM Mono', monospace;
+  text-align: right;
+  color: var(--text);
+}
+
+.data-table .num-muted {
+  font-family: 'DM Mono', monospace;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.data-table .flag-red { color: #f08080; font-weight: 600; font-family: 'DM Mono', monospace; text-align: right; }
+.data-table .flag-green { color: #6ad6a0; font-weight: 600; font-family: 'DM Mono', monospace; text-align: right; }
+.data-table .flag-gold { color: var(--gold); font-weight: 600; font-family: 'DM Mono', monospace; text-align: right; }
+
+/* ── Volume bars ── */
+.vol-bars { margin-bottom: 28px; }
+
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.vol-name {
+  width: 100px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.vol-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vol-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .6s ease;
+}
+
+.vol-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Resident profile ── */
+.res-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.res-name-large {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.res-name-large span {
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 22px;
+}
+
+.res-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ── Info boxes ── */
+.info-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.info-box-title {
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  gap: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+
+.info-key { color: var(--text-muted); flex-shrink: 0; }
+.info-val { color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; text-align: right; }
+
+/* ── Rotation timeline ── */
+.rot-timeline {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.rot-block {
+  border-radius: 3px;
+  padding: 5px 4px;
+  font-size: 9px;
+  line-height: 1.3;
+  text-align: center;
+  font-weight: 500;
+  cursor: default;
+  transition: opacity .15s;
+}
+.rot-block:hover { opacity: .8; }
+
+.rot-gen { background: rgba(42,109,181,.25); color: #7ab5f0; }
+.rot-card { background: rgba(201,168,76,.25); color: var(--gold); border: 1px solid rgba(201,168,76,.3); }
+.rot-ob { background: rgba(139,87,159,.25); color: #c896e0; }
+.rot-pacu { background: rgba(201,137,58,.2); color: #f0a870; }
+.rot-sicu { background: rgba(201,64,64,.2); color: #f08888; }
+.rot-neuro { background: rgba(58,130,90,.25); color: #7acca0; }
+.rot-peds { background: rgba(45,120,180,.2); color: #80c0f0; }
+.rot-pain { background: rgba(130,58,58,.25); color: #e09090; }
+.rot-airway { background: rgba(58,130,130,.25); color: #80d0d0; }
+.rot-va { background: rgba(100,100,100,.2); color: #aaaaaa; border: 1px dashed rgba(255,255,255,.15); }
+.rot-missing { background: rgba(255,255,255,.04); color: var(--text-dim); border: 1px dashed var(--border); }
+
+.rot-label-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  margin-bottom: 16px;
+}
+.rot-month-label {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-align: center;
+  letter-spacing: .05em;
+}
+
+/* ── Note box ── */
+.note {
+  background: rgba(42,109,181,.08);
+  border: 1px solid rgba(42,109,181,.2);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 6px 6px 0;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-top: 12px;
+}
+
+.note.note-gold {
+  background: rgba(201,168,76,.06);
+  border-color: rgba(201,168,76,.2);
+  border-left-color: var(--gold);
+}
+
+.note strong { color: var(--text); font-weight: 600; }
+
+/* ── Gap list ── */
+.gap-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.gap-item:last-child { border-bottom: none; }
+.gap-icon { color: var(--amber); margin-top: 2px; flex-shrink: 0; }
+
+/* ── Lecture list ── */
+.lec-item {
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  align-items: flex-start;
+}
+.lec-item:last-child { border-bottom: none; }
+.lec-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-top: 2px;
+  min-width: 60px;
+}
+.lec-topic { color: var(--text); flex: 1; }
+.lec-fac { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* ── Cardiac cards ── */
+.cardiac-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  border-top: 3px solid transparent;
+  transition: border-color .15s;
+}
+.cat-card:hover { border-color: var(--border-bright); border-top-color: inherit; }
+
+.cat-n {
+  font-family: 'DM Mono', monospace;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1;
+  margin: 6px 0 4px;
+}
+
+.cat-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.cat-detail { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-top: 6px; }
+
+/* ── Education ── */
+.curr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* ── Disclaimer ── */
+.disclaimer {
+  background: rgba(201,168,76,.05);
+  border: 1px solid rgba(201,168,76,.15);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+.disclaimer strong { color: var(--gold); }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .sidebar { width: 180px; }
+  .main { margin-left: 180px; }
+  .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .chart-grid-2 { grid-template-columns: 1fr; }
+  .cardiac-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="institution">Tulane University<br>Dept. of Anesthesiology</div>
+    <div class="report-title">CA-2027<br>Cohort Report</div>
+    <div class="badge">Confidential</div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <div class="nav-item active" onclick="showPanel('cohort')"><div class="nav-dot"></div>Cohort Summary</div>
+  <div class="nav-item" onclick="showPanel('cardiac')"><div class="nav-dot"></div>Cardiac & High-Acuity</div>
+  <div class="nav-item" onclick="showPanel('liver')"><div class="nav-dot"></div>Liver Transplants</div>
+  <div class="nav-item" onclick="showPanel('education')"><div class="nav-dot"></div>Education & Lectures</div>
+
+  <div class="nav-section">Residents</div>
+  <div class="nav-item" onclick="showPanel('ali')"><div class="nav-dot"></div>Ali, Sabah</div>
+  <div class="nav-item" onclick="showPanel('hanif')"><div class="nav-dot"></div>Hanif Garces, Diana</div>
+  <div class="nav-item" onclick="showPanel('lingle')"><div class="nav-dot"></div>Lingle, Brock</div>
+  <div class="nav-item" onclick="showPanel('orak')"><div class="nav-dot"></div>Orak, Oleksandr</div>
+  <div class="nav-item" onclick="showPanel('tran')"><div class="nav-dot"></div>Tran, Jessica</div>
+  <div class="nav-item" onclick="showPanel('zucker')"><div class="nav-dot"></div>Zucker, Marc</div>
+
+  <div class="sidebar-footer">
+    Data: Epic SA50 SlicerDicer<br>
+    Period: Jul 2024 – Mar 2026<br>
+    Generated: March 16, 2026
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Cohort Overview</div>
+    <div class="topbar-meta">
+      <span>6 residents</span>
+      <span>·</span>
+      <span>3,013 cases captured</span>
+      <span>·</span>
+      <span class="pill pill-gold">~65% data completeness</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ════════════════════════════════════════════════════
+       COHORT PANEL
+  ════════════════════════════════════════════════════ -->
+  <div id="panel-cohort" class="panel active">
+    <div class="section-label">Program Director Review · 2026</div>
+    <div class="section-title">CA-2027 Cohort Overview</div>
+    <div class="section-sub">July 2024 through March 2026. All figures reflect Epic Service Area 50 capture only — see data limitations below.</div>
+
+    <div class="disclaimer">
+      <strong>Data capture limitation:</strong> Figures reflect Epic Service Area 50 (Tulane/LCMC EJ and Lakeside campuses only). VA Hospital rotations, Children's Hospital NOLA (CHNOLA), and select LCMC cath lab cases fall outside this system. Estimated cohort-wide capture: ~65–70% of true caseload. Supplemental exports from VA and CHNOLA systems are recommended for complete ACGME verification.
+    </div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">Captured cases</div><div class="stat-value">3,013</div><div class="stat-sub">~4,500+ estimated actual</div></div>
+      <div class="stat-card"><div class="stat-label">Mean per resident</div><div class="stat-value">502</div><div class="stat-sub">range 471–530</div></div>
+      <div class="stat-card"><div class="stat-label">Total emergent</div><div class="stat-value">135</div><div class="stat-sub">4.5% cohort-wide</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Cardiac CPB</div><div class="stat-value">179</div><div class="stat-sub">5.9% of all cases</div></div>
+    </div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">Neuraxial</div><div class="stat-value">601</div><div class="stat-sub">20.0% of cases</div></div>
+      <div class="stat-card"><div class="stat-label">OB cases</div><div class="stat-value">570</div><div class="stat-sub">incl. floor epidurals</div></div>
+      <div class="stat-card"><div class="stat-label">Pediatric &lt;12yo</div><div class="stat-value">405</div><div class="stat-sub">13.4% — undercounted (CHNOLA)</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Liver transplants</div><div class="stat-value">25</div><div class="stat-sub">100% add-on · 100% blood Rx</div></div>
+    </div>
+
+    <div class="chart-title" style="margin-bottom:10px">Case volume by resident (captured)</div>
+    <div class="vol-bars" id="vol-bars"></div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">CA-1 vs CA-2 split</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="ch-split"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Mean ASA by resident</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="ch-asa"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">ACGME category exposure</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="ch-acgme"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Complexity markers (absolute)</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="ch-complex"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-title">Per-resident summary table</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Resident</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:right">CA-1</th>
+          <th style="text-align:right">CA-2</th>
+          <th style="text-align:right">ASA</th>
+          <th style="text-align:right">Emergent</th>
+          <th style="text-align:right">CPB</th>
+          <th style="text-align:right">Art Line</th>
+          <th style="text-align:right">Neuraxial</th>
+          <th style="text-align:right">Peds</th>
+          <th style="text-align:right">Liver Tx</th>
+          <th style="text-align:right">Lectures</th>
+        </tr>
+      </thead>
+      <tbody id="summary-table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       CARDIAC PANEL
+  ════════════════════════════════════════════════════ -->
+  <div id="panel-cardiac" class="panel">
+    <div class="section-label">Subspecialty Analysis</div>
+    <div class="section-title">Cardiac & High-Acuity Exposure</div>
+    <div class="section-sub">244 cardiac cases across the cohort. All residents completed one dedicated CARDIAC block (CA-1) and two GEN/CARD blocks (CA-2), staggered by resident.</div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">Total cardiac cases</div><div class="stat-value">244</div><div class="stat-sub">8.1% of all cases</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Mean cardiac ASA</div><div class="stat-value">3.77</div><div class="stat-sub">Highest acuity subspecialty</div></div>
+      <div class="stat-card"><div class="stat-label">Emergent cardiac</div><div class="stat-value">22</div><div class="stat-sub">9.0% of cardiac cases</div></div>
+      <div class="stat-card"><div class="stat-label">CABG → ICU</div><div class="stat-value">99%</div><div class="stat-sub">73/74 post-op ICU transfer</div></div>
+    </div>
+
+    <div class="cardiac-grid">
+      <div class="cat-card" style="border-top-color:#3b8bdf">
+        <div class="cat-name">CABG</div>
+        <div class="cat-n" style="color:#3b8bdf">74</div>
+        <div class="cat-detail">71 standard · 2 mammary · 1 combined AVR<br>CPB 100% · PAC 55% · TEE 18%<br>Blood Rx 91% · ICU 99%<br><strong>Mean ASA 3.80 · 1 emergent</strong></div>
+      </div>
+      <div class="cat-card" style="border-top-color:#5dcaa5">
+        <div class="cat-name">Valve Surgery</div>
+        <div class="cat-n" style="color:#5dcaa5">66</div>
+        <div class="cat-detail">AVR 21 · TAVR 17 · MVR 17 · MV Repair 11<br>CPB 73% · PAC 70% · TEE 21%<br>0 emergent — evenly distributed 7–15/resident<br><strong>Mean ASA 3.75</strong></div>
+      </div>
+      <div class="cat-card" style="border-top-color:#f0b06a">
+        <div class="cat-name">LVAD / VAD</div>
+        <div class="cat-n" style="color:#f0b06a">29</div>
+        <div class="cat-detail">Insertion 20 · Cut-down 6 · Percutaneous 2<br>CPB 62% · PAC 7% · TEE 24%<br>5 emergent across cohort<br><strong>Mean ASA 4.03 — highest category</strong></div>
+      </div>
+      <div class="cat-card" style="border-top-color:#f08080">
+        <div class="cat-name">Aortic / Other CPB</div>
+        <div class="cat-n" style="color:#f08080">30</div>
+        <div class="cat-detail">Ascending aneurysm 18 · Arch 4 · Dissection 1<br>CPB 100% · PAC 77% · TEE 17%<br>9 emergent — 30% emergent rate<br><strong>Mean ASA 4.00</strong></div>
+      </div>
+      <div class="cat-card" style="border-top-color:#c896e0">
+        <div class="cat-name">Heart Transplant</div>
+        <div class="cat-n" style="color:#c896e0">8</div>
+        <div class="cat-detail">All cadaveric donor<br>CPB 100% · PAC 100% · Blood 100%<br>3 emergent<br><strong>Mean ASA 4.00</strong></div>
+      </div>
+      <div class="cat-card" style="border-top-color:#7ab5f0">
+        <div class="cat-name">EP + Neuro IR</div>
+        <div class="cat-n" style="color:#7ab5f0">35</div>
+        <div class="cat-detail">Cerebral angiogram 14 · Thrombectomy 6<br>A-fib ablation 6 · BiV PPM 2<br>No CPB/PAC · 7 emergent thrombectomies<br><strong>Mean ASA 3.23</strong></div>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">Cardiac cases per resident by category</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="cc-byres"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Mean ASA by cardiac category</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="cc-asa"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-title" style="margin-bottom:10px">Liver transplants (25 total — 100% add-on, 100% blood products)</div>
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">pRBC units</div><div class="stat-value">52</div><div class="stat-sub">Cohort total</div></div>
+      <div class="stat-card"><div class="stat-label">FFP units</div><div class="stat-value">47</div><div class="stat-sub">Cohort total</div></div>
+      <div class="stat-card"><div class="stat-label">Platelets</div><div class="stat-value">41</div><div class="stat-sub">Cohort total</div></div>
+      <div class="stat-card"><div class="stat-label">Cryoprecipitate</div><div class="stat-value">24</div><div class="stat-sub">Cohort total</div></div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Resident</th>
+          <th style="text-align:right">Liver Tx</th>
+          <th style="text-align:right">CABG</th>
+          <th style="text-align:right">Valve</th>
+          <th style="text-align:right">LVAD/VAD</th>
+          <th style="text-align:right">Aortic/CPB</th>
+          <th style="text-align:right">Heart Tx</th>
+          <th style="text-align:right">Total Cardiac</th>
+          <th style="text-align:right">% Caseload</th>
+        </tr>
+      </thead>
+      <tbody id="cardiac-table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       LIVER PANEL
+  ════════════════════════════════════════════════════ -->
+  <div id="panel-liver" class="panel">
+    <div class="section-label">High-Acuity · Transplant Surgery</div>
+    <div class="section-title">Liver Transplants</div>
+    <div class="section-sub">25 cases across cohort · July 2024 – March 2026 · 100% add-on (cadaveric procurement) · 100% blood product utilization · 88% post-op ICU transfer.</div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card highlight"><div class="stat-label">Total cases</div><div class="stat-value">25</div><div class="stat-sub">100% add-on (unscheduled)</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Blood products</div><div class="stat-value">25/25</div><div class="stat-sub">Every case required transfusion</div></div>
+      <div class="stat-card"><div class="stat-label">ICU transfer</div><div class="stat-value">22/25</div><div class="stat-sub">88% post-operative ICU</div></div>
+      <div class="stat-card"><div class="stat-label">Emergent</div><div class="stat-value">3</div><div class="stat-sub">12% emergent rate</div></div>
+    </div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">pRBC units (cohort)</div><div class="stat-value">52</div><div class="stat-sub">Mean 2.1/case</div></div>
+      <div class="stat-card"><div class="stat-label">FFP/Plasma (cohort)</div><div class="stat-value">47</div><div class="stat-sub">Mean 1.9/case</div></div>
+      <div class="stat-card"><div class="stat-label">Platelets (cohort)</div><div class="stat-value">41</div><div class="stat-sub">Mean 1.6/case</div></div>
+      <div class="stat-card"><div class="stat-label">Cryoprecipitate (cohort)</div><div class="stat-value">24</div><div class="stat-sub">Mean 1.0/case · coagulopathy marker</div></div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">Cases per resident</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="lv-byres"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Mean ASA per resident</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="lv-asa"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">Blood products by resident (cohort totals)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="lv-blood"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Monthly volume (Jan 2025 – Mar 2026)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="lv-monthly"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-title" style="margin-bottom:12px">Case-level detail — all 25 transplants</div>
+    <table class="data-table" id="liver-case-table">
+      <thead>
+        <tr>
+          <th>Resident</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th style="text-align:right">ASA</th>
+          <th style="text-align:right">Art Lines</th>
+          <th style="text-align:right">CVC</th>
+          <th style="text-align:right">PAC</th>
+          <th style="text-align:right">ICU</th>
+          <th style="text-align:right">Emergent</th>
+        </tr>
+      </thead>
+      <tbody id="liver-table-body"></tbody>
+    </table>
+
+    <div class="stat-grid stat-grid-3" style="margin-top:20px">
+      <div class="info-box">
+        <div class="info-box-title">Orak — 7 cases (cohort lead)</div>
+        <div class="info-row"><span class="info-key">All add-ons</span><span class="info-val">7/7</span></div>
+        <div class="info-row"><span class="info-key">ICU transfers</span><span class="info-val">7/7 (100%)</span></div>
+        <div class="info-row"><span class="info-key">Emergent</span><span class="info-val">1</span></div>
+        <div class="info-row"><span class="info-key">Mean ASA</span><span class="info-val">3.71</span></div>
+        <div class="info-row"><span class="info-key">pRBC (total)</span><span class="info-val">14u</span></div>
+        <div class="info-row"><span class="info-key">FFP (total)</span><span class="info-val">17u</span></div>
+        <div class="info-row"><span class="info-key">Cryo (total)</span><span class="info-val">7u</span></div>
+        <div class="note note-gold" style="margin-top:10px;font-size:11px">Leads cohort in liver transplant volume. All cases were add-ons, all resulted in ICU transfer. Highest cryo utilization (7u) indicates consistently high coagulopathy burden consistent with advanced hepatic dysfunction.</div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-title">Hanif Garces — 6 cases · 2 PAC placements</div>
+        <div class="info-row"><span class="info-key">PAC / Swan</span><span class="info-val">2 (highest in cohort)</span></div>
+        <div class="info-row"><span class="info-key">Emergent</span><span class="info-val">1</span></div>
+        <div class="info-row"><span class="info-key">ICU transfers</span><span class="info-val">4/6</span></div>
+        <div class="info-row"><span class="info-key">Mean ASA</span><span class="info-val">3.83</span></div>
+        <div class="info-row"><span class="info-key">pRBC (total)</span><span class="info-val">12u</span></div>
+        <div class="info-row"><span class="info-key">Cryo (total)</span><span class="info-val">6u</span></div>
+        <div class="note" style="margin-top:10px;font-size:11px">2 PAC placements suggest cases with highest portal hypertension severity or attending preference for advanced hemodynamic monitoring. Highest cryo per case after Orak.</div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-title">Notable cases across cohort</div>
+        <div class="info-row"><span class="info-key">Living donor</span><span class="info-val">1 (Lingle, Apr 2025)</span></div>
+        <div class="info-row"><span class="info-key">ASA 5 case</span><span class="info-val">1 (Ali, May 2025)</span></div>
+        <div class="info-row"><span class="info-key">Jan 2026 cluster</span><span class="info-val">5 cases in one month</span></div>
+        <div class="info-row"><span class="info-key">Tran liver Tx</span><span class="info-val">1 of 498 cases (0.2%)</span></div>
+        <div class="note" style="margin-top:10px;font-size:11px">Lingle is the only resident with a living donor case — physiologically distinct from cadaveric (lower MELD, different monitoring approach). Ali's ASA 5 is the only moribund-designation transplant in the dataset. January 2026 clustering reflects organ availability patterns, not scheduling.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       EDUCATION PANEL
+  ════════════════════════════════════════════════════ -->
+  <div id="panel-education" class="panel">
+    <div class="section-label">Didactics · 2024–2026</div>
+    <div class="section-title">Educational Program</div>
+    <div class="section-sub">Weekly Thursday conference, faculty lectures, resident co-presentations, PBLDs, journal clubs, AKT exams. Curriculum follows Barash 9th Ed. (2024) two-year cycle.</div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-card"><div class="stat-label">Total co-presenter assignments</div><div class="stat-value">40</div><div class="stat-sub">CA-2027 cohort · 2 years</div></div>
+      <div class="stat-card"><div class="stat-label">Mean per resident</div><div class="stat-value">6.7</div><div class="stat-sub">range 5–8</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Most assignments</div><div class="stat-value">8</div><div class="stat-sub">Orak & Zucker (tied)</div></div>
+      <div class="stat-card"><div class="stat-label">Fewest assignments</div><div class="stat-value">5</div><div class="stat-sub">Tran</div></div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="chart-box">
+        <div class="chart-title">Lecture assignments per resident</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="ec-lec"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Curriculum milestones</div>
+        <table class="data-table" style="margin:0">
+          <tbody>
+            <tr><td class="info-key">ITE Exam</td><td class="num">February (both years)</td></tr>
+            <tr><td class="info-key">AKT 6 (CA-1)</td><td class="num">December</td></tr>
+            <tr><td class="info-key">AKT 24 (CA-2)</td><td class="num">June</td></tr>
+            <tr><td class="info-key">Oral Board Prep sessions</td><td class="num">Mar + May 2026</td></tr>
+            <tr><td class="info-key">Visiting professors</td><td class="num">4 (Rodriguez, O'Gara, Ramchandran, Azocar)</td></tr>
+            <tr><td class="info-key">Peds zoom lectures</td><td class="num">Quarterly both years</td></tr>
+            <tr><td class="info-key">Teaching Kitchen wellness</td><td class="num">Annual out-of-hospital</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-title">All lecture co-presenter assignments — CA-2027 cohort</div>
+    <table class="data-table" id="lec-full-table">
+      <thead>
+        <tr><th>Resident</th><th>Date</th><th>Topic</th><th>Faculty</th><th>Year</th></tr>
+      </thead>
+      <tbody id="lec-table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       RESIDENT PANELS
+  ════════════════════════════════════════════════════ -->
+  <div id="panel-ali" class="panel"></div>
+  <div id="panel-hanif" class="panel"></div>
+  <div id="panel-lingle" class="panel"></div>
+  <div id="panel-orak" class="panel"></div>
+  <div id="panel-tran" class="panel"></div>
+  <div id="panel-zucker" class="panel"></div>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /shell -->
+
+<script>
+// ── Data ───────────────────────────────────────────────────────────────────
+const NAMES = ['Ali','Hanif Garces','Lingle','Orak','Tran','Zucker'];
+const COLORS = ['#3b8bdf','#2d9e6b','#f0a870','#c896e0','#f08080','#5dcaa5'];
+
+const RES = {
+  ali:   { name:'Ali, Sabah', color:'#3b8bdf', total:530, ca1:327, ca2:203, asa:2.55, emergent:25, cpb:33, pac:22, art:87, cvc:20, icu:74, blood:54, tee:10, dlt:6, neuraxial:123, ob:119, peds:65, elderly:137, liver:3, mall34:153, failed:17, vl:194, addon:96, lectures:6,
+    cardiac:{CABG:13,Valve:15,'LVAD/VAD':3,'Aortic/CPB':4,'Heart Tx':1,'EP/Neuro':9},
+    rotCA1:[{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'OB-Lk',c:'rot-ob'},{l:'VA GEN',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'?',c:'rot-missing'},{l:'NEURO',c:'rot-neuro'},{l:'CARDIAC',c:'rot-card'},{l:'GEN/OB',c:'rot-ob'},{l:'GEN-VA',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'PACU',c:'rot-pacu'}],
+    rotCA2:[{l:'PACU',c:'rot-pacu'},{l:'GEN/CARD',c:'rot-card'},{l:'GEN/CARD',c:'rot-card'},{l:'PEDI†',c:'rot-va'},{l:'PAIN-VA†',c:'rot-va'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'Acute Pain',c:'rot-airway'},{l:'NEURO',c:'rot-neuro'},{l:'PEDI†',c:'rot-va'},{l:'Airway',c:'rot-airway'}],
+    gaps:['Sep-Oct 2025: PEDI-CH at CHNOLA (outside SA50)','Oct-Nov 2025: PAIN-VA at VA (outside SA50)','Nov 2025: vacation block'],
+    lecList:[{d:'Jul 2024',t:'Preoperative Assessment',f:'Cox',yr:'CA-1'},{d:'Sep 2024',t:'Opioids',f:'Cox',yr:'CA-1'},{d:'Dec 2024',t:'Regional Anesthesia',f:'Foldes',yr:'CA-1'},{d:'Mar 2025',t:'Anesthesia for ENT',f:'Faul',yr:'CA-1'},{d:'Sep 2025',t:'Airway Management',f:'Cox',yr:'CA-2'},{d:'Nov 2025',t:'Anesthesia for CV Disease',f:'Pierre',yr:'CA-2'}],
+    notes:'Highest video laryngoscopy utilization (194 cases, 36.6%) and neuraxial volume (123) in cohort. Concentrated cardiac exposure during Feb 2025 CARDIAC block (13 CABG). Strong OB/neuraxial profile. Highest Mallampati III/IV documentation (153). 6 lecture assignments spanning pharmacology through subspecialty CV anesthesia.'
+  },
+  hanif: { name:'Hanif Garces, Diana', color:'#2d9e6b', total:492, ca1:290, ca2:202, asa:2.42, emergent:20, cpb:29, pac:23, art:82, cvc:17, icu:77, blood:57, tee:4, dlt:7, neuraxial:99, ob:95, peds:51, elderly:126, liver:6, mall34:148, failed:19, vl:194, addon:89, lectures:6,
+    cardiac:{CABG:12,Valve:13,'LVAD/VAD':5,'Aortic/CPB':4,'Heart Tx':2,'EP/Neuro':6},
+    rotCA1:[{l:'GEN',c:'rot-gen'},{l:'GEN-VA',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'?',c:'rot-missing'},{l:'GEN-VA',c:'rot-va'},{l:'NEURO',c:'rot-neuro'},{l:'CARDIAC',c:'rot-card'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'GEN/OB',c:'rot-ob'}],
+    rotCA2:[{l:'GEN/CARD',c:'rot-card'},{l:'GEN/CARD',c:'rot-card'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'PEDI†',c:'rot-va'},{l:'PAIN-VA†',c:'rot-va'},{l:'Acute Pain',c:'rot-airway'},{l:'Airway',c:'rot-airway'},{l:'GEN/OB',c:'rot-ob'},{l:'NEURO',c:'rot-neuro'},{l:'PEDI†',c:'rot-va'}],
+    gaps:['Aug 2024: GEN-VA full block lost (outside SA50)','Oct-Nov 2025: PEDI-CH at CHNOLA','Nov-Dec 2025: PAIN-VA (outside SA50)','Vacation gaps Nov 2024'],
+    lecList:[{d:'Jul 2024',t:'IV Anesthetics',f:'Pham',yr:'CA-1'},{d:'Sep 2024',t:'POCUS & USN Physics',f:'Singaram',yr:'CA-1'},{d:'Oct 2024',t:'Hemostasis & Blood Transfusion',f:'Eagleton',yr:'CA-1'},{d:'Jan 2025',t:'Co-presenter: POCUS review',f:'Singaram',yr:'CA-1'},{d:'Apr 2026',t:'Burns & Trauma Anesthesia',f:'Mancuso',yr:'CA-2*'},{d:'Jun 2026',t:'Anesthesia for Thoracic Surgery',f:'Du',yr:'CA-2*'}],
+    notes:'Highest failed airway documentation (19 attempts) — reflects thorough documentation in a genuinely complex case mix. Leads cohort in liver transplants (6) with 2 PAC placements, suggesting highest MELD acuity. Tied with Ali for most video laryngoscopy use (194). Highest ICU transfer rate (77). Two upcoming lecture assignments remaining in CA-2.'
+  },
+  lingle: { name:'Lingle, Brock', color:'#f0a870', total:504, ca1:325, ca2:179, asa:2.48, emergent:19, cpb:38, pac:29, art:102, cvc:18, icu:76, blood:61, tee:9, dlt:12, neuraxial:114, ob:109, peds:49, elderly:133, liver:4, mall34:136, failed:11, vl:157, addon:110, lectures:7,
+    cardiac:{CABG:18,Valve:13,'LVAD/VAD':4,'Aortic/CPB':5,'Heart Tx':2,'EP/Neuro':2},
+    rotCA1:[{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'VA GEN',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'GEN-VA',c:'rot-va'},{l:'?',c:'rot-missing'},{l:'CARDIAC',c:'rot-card'},{l:'OB-Lk',c:'rot-ob'},{l:'SICU',c:'rot-sicu'},{l:'SICU',c:'rot-sicu'},{l:'GEN/OB',c:'rot-ob'},{l:'GEN',c:'rot-gen'}],
+    rotCA2:[{l:'GEN/CARD',c:'rot-card'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'GEN/CARD',c:'rot-card'},{l:'Acute Pain',c:'rot-airway'},{l:'PEDI†',c:'rot-va'},{l:'PAIN-VA†',c:'rot-va'},{l:'NEURO',c:'rot-neuro'},{l:'Airway',c:'rot-airway'},{l:'PAIN-VA†',c:'rot-va'},{l:'GEN-VA†',c:'rot-va'}],
+    gaps:['Sep 2024: VA GEN/Pre-Op (outside SA50)','Nov 2024: GEN-VA (outside SA50)','Nov-Dec 2025: PEDI-CH at CHNOLA','Dec-Jan 2026: PAIN-VA (outside SA50)','Mar 2026: PAIN-VA + GEN-VA (outside SA50)'],
+    lecList:[{d:'Aug 2024',t:'Inhaled Anesthetics',f:'Pham',yr:'CA-1'},{d:'Oct 2024',t:'Liver & Renal Physiology',f:'Ku',yr:'CA-1'},{d:'Dec 2024',t:'Neurophysiology & Neurosurgery',f:'McClure',yr:'CA-1'},{d:'Mar 2025',t:'Anesthesia for Neurosurgery',f:'McClure',yr:'CA-1'},{d:'Apr 2025',t:'Scope of Practice & Quality',f:'DeLanzac',yr:'CA-1'},{d:'Sep 2025',t:'Neuromuscular Blockade',f:'Pham',yr:'CA-2'},{d:'Apr 2026',t:'Cardiac Transplantation',f:'Pierre',yr:'CA-2*'}],
+    notes:'Leads cohort across all cardiac complexity markers: 38 CPB, 29 PACs, 12 DLTs (most lung isolation in cohort), 102 art lines. CARDIAC block in Jan 2025 accounts for 18 CABG cases — single-block cardiac concentration. Highest add-on volume (110). Most lecture assignments (7) with broadest subspecialty scope. Only resident with a living donor liver transplant. Multiple VA/CHNOLA gaps represent substantial undercounting.'
+  },
+  orak: { name:'Orak, Oleksandr', color:'#c896e0', total:471, ca1:285, ca2:186, asa:2.49, emergent:37, cpb:25, pac:13, art:84, cvc:21, icu:75, blood:48, tee:8, dlt:5, neuraxial:77, ob:76, peds:50, elderly:135, liver:7, mall34:113, failed:13, vl:121, addon:112, lectures:8,
+    cardiac:{CABG:11,'LVAD/VAD':11,Valve:7,'Aortic/CPB':3,'Heart Tx':0,'EP/Neuro':10,'Pericardectomy':1},
+    rotCA1:[{l:'GEN',c:'rot-gen'},{l:'VA GEN',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'OB-Lk',c:'rot-ob'},{l:'?',c:'rot-missing'},{l:'GEN',c:'rot-gen'},{l:'SICU',c:'rot-sicu'},{l:'PACU',c:'rot-pacu'},{l:'NEURO',c:'rot-neuro'},{l:'CARDIAC',c:'rot-card'},{l:'GEN/OB',c:'rot-ob'}],
+    rotCA2:[{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'PAIN-VA†',c:'rot-va'},{l:'GEN/CARD',c:'rot-card'},{l:'GEN/CARD',c:'rot-card'},{l:'GEN-VA†',c:'rot-va'},{l:'PEDI†',c:'rot-va'},{l:'GEN/OB',c:'rot-ob'},{l:'PAIN-VA†',c:'rot-va'},{l:'Airway',c:'rot-airway'},{l:'NEURO',c:'rot-neuro'}],
+    gaps:['Aug 2024: VA GEN/Pre-Op — full block outside SA50','Aug-Sep 2025: PAIN-VA at VA (outside SA50)','Nov-Dec 2025: GEN-VA (partially outside SA50)','Dec-Jan 2026: PEDI-CH at CHNOLA','Feb 2026: PAIN-VA — only 3 cases captured (expected ~20+)'],
+    lecList:[{d:'Aug 2024',t:'Neuromuscular Blocking Drugs',f:'Singaram',yr:'CA-1'},{d:'Jan 2025',t:'Anesthesia for CV Patients & TEE',f:'Pierre',yr:'CA-1'},{d:'Apr 2025',t:'Heart Failure & VAD',f:'Meyer',yr:'CA-1'},{d:'Jun 2025',t:'Burns & Trauma Anesthesia',f:'Eagleton',yr:'CA-1'},{d:'Oct 2025',t:'Anesthesia for Geriatrics',f:'Faul',yr:'CA-2'},{d:'Nov 2025',t:'Cardiac Physiology',f:'Pierre',yr:'CA-2'},{d:'Nov 2024',t:'Anesthesia for CV Patients (w/ Pierre)',f:'Pierre',yr:'CA-1'},{d:'May 2026',t:'Topic of Choice',f:'TBD',yr:'CA-2*'}],
+    notes:"Highest emergent rate in cohort (37 cases, 7.9% vs cohort mean 4.5%), reflecting substantial unplanned add-on and on-call exposure. Leads cohort in LVAD/VAD (11 cases, 38% of all cohort VAD cases — spanning percutaneous, open, and cut-down approaches) and liver transplants (7, all add-ons with 100% ICU transfer). Captured volume (471) reflects the highest out-of-system rotation burden in the cohort — VA and CHNOLA blocks account for multiple months of uncaptured activity. Regional anesthesia cases were excluded from personal logging per program protocol (blocks performed in the dedicated block bay by assigned residents), further reducing raw totals relative to true clinical activity. Most add-on cases (112, 23.8%). Tied for most lecture assignments (8), with a notably subspecialty-weighted portfolio: cardiac physiology, VAD, TEE, and geriatrics."
+  },
+  tran: { name:'Tran, Jessica', color:'#f08080', total:498, ca1:317, ca2:181, asa:2.24, emergent:15, cpb:23, pac:19, art:57, cvc:13, icu:47, blood:37, tee:5, dlt:6, neuraxial:125, ob:121, peds:85, elderly:97, liver:1, mall34:92, failed:12, vl:129, addon:86, lectures:5,
+    cardiac:{CABG:7,Valve:7,'LVAD/VAD':3,'Aortic/CPB':4,'Heart Tx':3,'EP/Neuro':2},
+    rotCA1:[{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'OB-Lk',c:'rot-ob'},{l:'GEN-VA',c:'rot-va'},{l:'?',c:'rot-missing'},{l:'SICU',c:'rot-sicu'},{l:'PACU',c:'rot-pacu'},{l:'VA GEN',c:'rot-va'},{l:'GEN/OB',c:'rot-ob'},{l:'NEURO',c:'rot-neuro'},{l:'CARDIAC',c:'rot-card'}],
+    rotCA2:[{l:'GEN/OB',c:'rot-ob'},{l:'PAIN-VA†',c:'rot-va'},{l:'PEDI†',c:'rot-va'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'GEN/CARD',c:'rot-card'},{l:'GEN/CARD',c:'rot-card'},{l:'PAIN-VA†',c:'rot-va'},{l:'PEDI†',c:'rot-va'},{l:'GEN-VA†',c:'rot-va'},{l:'Acute Pain',c:'rot-airway'}],
+    gaps:['Nov 2024: GEN-VA (outside SA50)','Mar 2025: VA GEN/Pre-Op (outside SA50)','Jul-Aug 2025: PAIN-VA (outside SA50)','Aug-Sep 2025: PEDI-CH at CHNOLA','Jan-Feb 2026: PAIN-VA (outside SA50)','Feb-Mar 2026: PEDI-CH at CHNOLA','Mar 2026: GEN-VA (outside SA50)'],
+    lecList:[{d:'Aug 2024',t:'Airway Management',f:'Cox',yr:'CA-1'},{d:'Sep 2024',t:'Fluids, Electrolytes & Acid-Base',f:'DeLanzac',yr:'CA-1'},{d:'Nov 2024',t:'Anesthesia for Obesity',f:'Faul',yr:'CA-1'},{d:'May 2025',t:'Anesthesia for Vascular Surgery',f:'Induru',yr:'CA-1'},{d:'May 2026',t:'Anesthesia for Vascular Surgery',f:'Induru',yr:'CA-2*'}],
+    notes:'Highest neuraxial (125) and OB (121) volumes in cohort. Second-highest peds volume (85 captured — substantially more during CHNOLA blocks). Lowest mean ASA (2.24) reflecting OB/peds rotation skew. Despite fewest cardiac cases overall (5.2% of caseload), achieved 3 heart transplants — highest transplant density relative to cardiac caseload. Assigned same lecture topic (Vascular Surgery) in both CA-1 and CA-2 — longitudinal mastery. Most data gaps of any resident (7 rotation blocks outside SA50).'
+  },
+  zucker: { name:'Zucker, Marc', color:'#5dcaa5', total:518, ca1:286, ca2:232, asa:2.35, emergent:19, cpb:31, pac:24, art:55, cvc:23, icu:62, blood:45, tee:6, dlt:6, neuraxial:63, ob:59, peds:105, elderly:137, liver:4, mall34:113, failed:5, vl:181, addon:97, lectures:8,
+    cardiac:{CABG:13,Valve:11,'LVAD/VAD':3,'Aortic/CPB':10,'Heart Tx':0,'EP/Neuro':7},
+    rotCA1:[{l:'GEN-VA',c:'rot-va'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'GEN',c:'rot-gen'},{l:'NEURO',c:'rot-neuro'},{l:'?',c:'rot-missing'},{l:'OB-Lk',c:'rot-ob'},{l:'GEN-VA',c:'rot-va'},{l:'GEN/OB',c:'rot-ob'},{l:'CARDIAC',c:'rot-card'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'}],
+    rotCA2:[{l:'GEN/OB',c:'rot-ob'},{l:'PEDI†',c:'rot-va'},{l:'GEN/CARD',c:'rot-card'},{l:'PAIN-VA†',c:'rot-va'},{l:'PACU',c:'rot-pacu'},{l:'SICU',c:'rot-sicu'},{l:'GEN/CARD',c:'rot-card'},{l:'PEDI†',c:'rot-va'},{l:'Acute Pain',c:'rot-airway'},{l:'Airway',c:'rot-airway'},{l:'PAIN-VA†',c:'rot-va'}],
+    gaps:['Jul 2024: GEN-VA Block 2 — near-zero Jul capture (3 cases)','Feb 2025: GEN-VA (outside SA50)','Jul-Aug 2025: PEDI-CH at CHNOLA','Sep-Oct 2025: PAIN-VA/GEN-VA (outside SA50)','Jan-Feb 2026: PEDI-CH at CHNOLA','Apr 2026: PAIN-VA (outside SA50)'],
+    lecList:[{d:'Aug 2024',t:'Local Anesthetics',f:'Foldes',yr:'CA-1'},{d:'Sep 2024',t:'Monitors & Anesthesia Workstation',f:'Induru',yr:'CA-1'},{d:'Nov 2024',t:'Cardiac Physiology',f:'Pierre',yr:'CA-1'},{d:'May 2025',t:'Anesthesia for Cardiac Transplant',f:'Pierre',yr:'CA-1'},{d:'Dec 2025',t:'Neurophysiology & Neurosurgery',f:'McClure',yr:'CA-2'},{d:'Jan 2026',t:'Hemostasis & Blood Transfusion',f:'Eagleton',yr:'CA-2'},{d:'Apr 2026',t:'Burns & Trauma Anesthesia',f:'Mancuso',yr:'CA-2*'},{d:'Apr 2026',t:'Topic of Choice (w/ Hanif Garces)',f:'TBD',yr:'CA-2*'}],
+    notes:'Highest total cases (518) and strongest CA-2 output (232 cases). Leads cohort in peds (105 captured — significantly higher with CHNOLA blocks). Highest aortic surgery volume (10 cases, 4 emergent). Lowest failed airway rate (5) — notable given case volume and complexity. Most lecture assignments (tied, 8) spanning pharmacology through cardiac transplantation. GEN-VA in July 2024 Block 2 explains near-zero July case capture (3 cases).'
+  }
+};
+
+const MONTHS_CA1 = ['Jul\u201924','Aug','Sep','Oct','Nov','Dec','Jan\u201925','Feb','Mar','Apr','May','Jun'];
+const MONTHS_CA2 = ['Jun\u201925','Jul','Aug','Sep','Oct','Nov','Dec','Jan\u201926','Feb','Mar','Apr'];
+
+// ── Resident panel builder ─────────────────────────────────────────────────
+function buildResPanel(key) {
+  const r = RES[key];
+  const totalCardiac = Object.values(r.cardiac).reduce((a,b)=>a+b,0);
+  const el = document.getElementById(`panel-${key}`);
+
+  el.innerHTML = `
+    <div class="res-header">
+      <div>
+        <div class="section-label">Individual Profile</div>
+        <div class="res-name-large" style="color:${r.color}">${r.name.split(',')[0]}<span>, ${r.name.split(',')[1]||''}</span></div>
+        <div class="res-pills">
+          <span class="pill pill-blue">${r.total} cases captured</span>
+          <span class="pill pill-gold">Mean ASA ${r.asa.toFixed(2)}</span>
+          <span class="pill ${r.emergent>=30?'pill-red':'pill-blue'}">${r.emergent} emergent (${(r.emergent/r.total*100).toFixed(1)}%)</span>
+          <span class="pill pill-green">${r.liver} liver Tx</span>
+          <span class="pill pill-gold">${r.lectures} lectures</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-grid stat-grid-5">
+      <div class="stat-card"><div class="stat-label">CA-1 cases</div><div class="stat-value">${r.ca1}</div></div>
+      <div class="stat-card"><div class="stat-label">CA-2 cases</div><div class="stat-value">${r.ca2}</div></div>
+      <div class="stat-card"><div class="stat-label">Cardiac CPB</div><div class="stat-value">${r.cpb}</div><div class="stat-sub">PAC: ${r.pac} · TEE: ${r.tee}</div></div>
+      <div class="stat-card"><div class="stat-label">Art lines</div><div class="stat-value">${r.art}</div></div>
+      <div class="stat-card"><div class="stat-label">ICU transfers</div><div class="stat-value">${r.icu}</div><div class="stat-sub">${(r.icu/r.total*100).toFixed(1)}%</div></div>
+    </div>
+
+    <div class="chart-grid chart-grid-2" style="margin-bottom:20px">
+      <div>
+        <div class="info-box">
+          <div class="info-box-title">Procedural complexity</div>
+          <div class="info-row"><span class="info-key">Cardiac CPB</span><span class="info-val">${r.cpb}</span></div>
+          <div class="info-row"><span class="info-key">PAC / Swan</span><span class="info-val">${r.pac}</span></div>
+          <div class="info-row"><span class="info-key">Arterial line</span><span class="info-val">${r.art}</span></div>
+          <div class="info-row"><span class="info-key">CVC</span><span class="info-val">${r.cvc}</span></div>
+          <div class="info-row"><span class="info-key">TEE</span><span class="info-val">${r.tee}</span></div>
+          <div class="info-row"><span class="info-key">DLT (lung isolation)</span><span class="info-val">${r.dlt}</span></div>
+          <div class="info-row"><span class="info-key">Blood products</span><span class="info-val">${r.blood} cases</span></div>
+          <div class="info-row"><span class="info-key">Add-on cases</span><span class="info-val">${r.addon} (${(r.addon/r.total*100).toFixed(1)}%)</span></div>
+        </div>
+        <div class="info-box">
+          <div class="info-box-title">ACGME categories</div>
+          <div class="info-row"><span class="info-key">Neuraxial total</span><span class="info-val">${r.neuraxial}</span></div>
+          <div class="info-row"><span class="info-key">OB (C-section + epidural)</span><span class="info-val">${r.ob}</span></div>
+          <div class="info-row"><span class="info-key">Pediatric (&lt;12yo)</span><span class="info-val">${r.peds}</span></div>
+          <div class="info-row"><span class="info-key">Elderly (≥65yo)</span><span class="info-val">${r.elderly}</span></div>
+          <div class="info-row"><span class="info-key">Mallampati III/IV</span><span class="info-val">${r.mall34} (${(r.mall34/r.total*100).toFixed(1)}%)</span></div>
+          <div class="info-row"><span class="info-key">Video laryngoscopy</span><span class="info-val">${r.vl} (${(r.vl/r.total*100).toFixed(1)}%)</span></div>
+          <div class="info-row"><span class="info-key">Failed airway attempts</span><span class="info-val">${r.failed}</span></div>
+          <div class="info-row"><span class="info-key">Liver transplants</span><span class="info-val">${r.liver}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="info-box">
+          <div class="info-box-title">Cardiac breakdown (${totalCardiac} total)</div>
+          ${Object.entries(r.cardiac).map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-bottom:16px">
+      <div class="info-box-title">CA-1 rotation sequence (Jul 2024 – Jun 2025)</div>
+      <div class="rot-timeline">${r.rotCA1.map(b=>`<div class="rot-block ${b.c}" title="${b.l}">${b.l}</div>`).join('')}</div>
+      <div class="rot-label-row">${MONTHS_CA1.map(m=>`<div class="rot-month-label">${m}</div>`).join('')}</div>
+      <div class="info-box-title" style="margin-top:8px">CA-2 rotation sequence (Jun 2025 – Apr 2026)</div>
+      <div class="rot-timeline" style="grid-template-columns:repeat(11,1fr)">${r.rotCA2.map(b=>`<div class="rot-block ${b.c}" title="${b.l}">${b.l}</div>`).join('')}</div>
+      <div class="rot-label-row" style="grid-template-columns:repeat(11,1fr)">${MONTHS_CA2.slice(0,11).map(m=>`<div class="rot-month-label">${m}</div>`).join('')}</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:4px">† Outside Service Area 50 (VA or CHNOLA) — cases not captured in this dataset</div>
+    </div>
+
+    <div class="chart-grid chart-grid-2">
+      <div class="info-box">
+        <div class="info-box-title">Known data capture gaps</div>
+        ${r.gaps.map(g=>`<div class="gap-item"><span class="gap-icon">⚠</span><span>${g}</span></div>`).join('')}
+      </div>
+      <div class="info-box">
+        <div class="info-box-title">Lecture co-presenter assignments (${r.lecList.length})</div>
+        ${r.lecList.map(l=>`<div class="lec-item"><div class="lec-date">${l.d}<br><span style="color:${l.yr.includes('*')?'var(--amber)':'var(--blue-bright)'}">${l.yr}</span></div><div><div class="lec-topic">${l.t}</div><div class="lec-fac">with ${l.f}</div></div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="note ${key==='orak'?'note-gold':''}">
+      ${key==='orak'?'<strong>Contextual note:</strong> ':'<strong>Assessment:</strong> '}${r.notes}
+    </div>
+  `;
+}
+
+// ── Summary table ──────────────────────────────────────────────────────────
+function buildSummaryTable() {
+  const tbody = document.getElementById('summary-table-body');
+  const keys = ['ali','hanif','lingle','orak','tran','zucker'];
+  keys.forEach((key,i) => {
+    const r = RES[key];
+    const row = document.createElement('tr');
+    const emClass = r.emergent>=30 ? 'flag-red' : r.emergent<=15 ? 'flag-green' : 'num';
+    const pedsClass = r.peds>=100 ? 'flag-green' : 'num-muted';
+    const liverClass = r.liver>=6 ? 'flag-green' : r.liver>=4 ? 'flag-gold' : 'num-muted';
+    row.innerHTML = `
+      <td><span class="res-name" style="color:${r.color}">${r.name.split(',')[0]}</span></td>
+      <td class="num">${r.total}</td>
+      <td class="num-muted">${r.ca1}</td>
+      <td class="num-muted">${r.ca2}</td>
+      <td class="num">${r.asa.toFixed(2)}</td>
+      <td class="${emClass}">${r.emergent}</td>
+      <td class="num">${r.cpb}</td>
+      <td class="num-muted">${r.art}</td>
+      <td class="num-muted">${r.neuraxial}</td>
+      <td class="${pedsClass}">${r.peds}</td>
+      <td class="${liverClass}">${r.liver}</td>
+      <td class="num-muted">${r.lectures}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ── Cardiac table ──────────────────────────────────────────────────────────
+function buildCardiacTable() {
+  const tbody = document.getElementById('cardiac-table-body');
+  const totalsRow = {ali:0,hanif:0,lingle:0,orak:0,tran:0,zucker:0};
+  const keys = ['ali','hanif','lingle','orak','tran','zucker'];
+  keys.forEach(key => {
+    const r = RES[key];
+    const total = Object.values(r.cardiac).reduce((a,b)=>a+b,0);
+    const row = document.createElement('tr');
+    const c = r.cardiac;
+    row.innerHTML = `
+      <td><span class="res-name" style="color:${r.color}">${r.name.split(',')[0]}</span></td>
+      <td class="${r.liver>=6?'flag-green':'num'}">${r.liver}</td>
+      <td class="num">${c.CABG||0}</td>
+      <td class="num-muted">${c.Valve||0}</td>
+      <td class="${(c['LVAD/VAD']||0)>=10?'flag-green':'num-muted'}">${c['LVAD/VAD']||0}</td>
+      <td class="${(c['Aortic/CPB']||0)>=8?'flag-gold':'num-muted'}">${c['Aortic/CPB']||0}</td>
+      <td class="${(c['Heart Tx']||0)>=3?'flag-green':'num-muted'}">${c['Heart Tx']||0}</td>
+      <td class="flag-gold">${total} (${(total/r.total*100).toFixed(1)}%)</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ── Lecture table ──────────────────────────────────────────────────────────
+function buildLecTable() {
+  const tbody = document.getElementById('lec-table-body');
+  const all = [];
+  Object.entries(RES).forEach(([key,r]) => {
+    r.lecList.forEach(l => all.push({...l, res: r.name.split(',')[0], color: r.color}));
+  });
+  all.sort((a,b) => {
+    const months = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];
+    const ym = s => { const parts = s.split(' '); return (parts[1]||'2024') + String(months.indexOf(parts[0])).padStart(2,'0'); };
+    return ym(a.d).localeCompare(ym(b.d));
+  });
+  all.forEach(l => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span style="color:${l.color};font-weight:600">${l.res}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">${l.d}</td>
+      <td style="color:var(--text)">${l.t}</td>
+      <td style="color:var(--text-muted)">${l.f}</td>
+      <td><span class="pill ${l.yr.includes('*')?'pill-amber':'pill-blue'}" style="font-size:10px">${l.yr}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ── Charts ─────────────────────────────────────────────────────────────────
+const gc = 'rgba(255,255,255,0.06)';
+const tc = '#4a6280';
+const boBase = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } };
+const boLeg  = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, position:'top', labels:{ color:'#7a92b0', font:{ size:10, family:"'DM Mono', monospace" }, boxWidth:8, padding:10 } } } };
+
+function initCharts() {
+  // Volume bars
+  const maxT = Math.max(...Object.values(RES).map(r=>r.total));
+  const barsEl = document.getElementById('vol-bars');
+  Object.entries(RES).forEach(([key,r],i) => {
+    const div = document.createElement('div');
+    div.className = 'vol-row';
+    div.innerHTML = `
+      <div class="vol-name" style="color:${r.color}">${r.name.split(',')[0]}</div>
+      <div class="vol-bar-wrap"><div class="vol-bar" style="width:${(r.total/maxT*100).toFixed(1)}%;background:${r.color}"></div></div>
+      <div class="vol-num">${r.total}</div>
+    `;
+    barsEl.appendChild(div);
+  });
+
+  // CA1 vs CA2
+  new Chart(document.getElementById('ch-split'),{
+    type:'bar',
+    data:{ labels:NAMES, datasets:[
+      {label:'CA-1',data:[327,290,325,285,317,286],backgroundColor:'rgba(42,109,181,0.6)',borderRadius:3},
+      {label:'CA-2',data:[203,202,179,186,181,232],backgroundColor:'rgba(45,158,107,0.6)',borderRadius:3}
+    ]},
+    options:{...boLeg,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10}},grid:{color:gc}}}}
+  });
+
+  // ASA
+  new Chart(document.getElementById('ch-asa'),{
+    type:'bar',
+    data:{labels:NAMES,datasets:[{data:[2.55,2.42,2.48,2.49,2.24,2.35],backgroundColor:COLORS,borderRadius:4}]},
+    options:{...boBase,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{min:2.0,max:2.7,ticks:{color:tc,font:{size:10},callback:v=>v.toFixed(2)},grid:{color:gc}}}}
+  });
+
+  // ACGME
+  new Chart(document.getElementById('ch-acgme'),{
+    type:'bar',
+    data:{labels:NAMES,datasets:[
+      {label:'Neuraxial',data:[123,99,114,77,125,63],backgroundColor:'rgba(42,109,181,0.7)',borderRadius:2},
+      {label:'OB',data:[119,95,109,76,121,59],backgroundColor:'rgba(139,87,159,0.7)',borderRadius:2},
+      {label:'Peds',data:[65,51,49,50,85,105],backgroundColor:'rgba(201,137,58,0.7)',borderRadius:2},
+      {label:'Elderly',data:[137,126,133,135,97,137],backgroundColor:'rgba(100,100,100,0.5)',borderRadius:2},
+    ]},
+    options:{...boLeg,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10}},grid:{color:gc}}}}
+  });
+
+  // Complexity
+  new Chart(document.getElementById('ch-complex'),{
+    type:'bar',
+    data:{labels:NAMES,datasets:[
+      {label:'CPB',data:[33,29,38,25,23,31],backgroundColor:'rgba(201,168,76,0.7)',borderRadius:2},
+      {label:'Art Line',data:[87,82,102,84,57,55],backgroundColor:'rgba(42,109,181,0.7)',borderRadius:2},
+      {label:'ICU Xfer',data:[74,77,76,75,47,62],backgroundColor:'rgba(201,64,64,0.6)',borderRadius:2},
+    ]},
+    options:{...boLeg,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10}},grid:{color:gc}}}}
+  });
+
+  // Cardiac by resident
+  new Chart(document.getElementById('cc-byres'),{
+    type:'bar',
+    data:{labels:NAMES,datasets:[
+      {label:'CABG',data:[13,12,18,11,7,13],backgroundColor:'rgba(59,139,223,0.7)',borderRadius:2},
+      {label:'Valve',data:[15,13,13,7,7,11],backgroundColor:'rgba(93,202,165,0.7)',borderRadius:2},
+      {label:'LVAD/VAD',data:[3,5,4,11,3,3],backgroundColor:'rgba(240,160,112,0.7)',borderRadius:2},
+      {label:'Aortic/CPB',data:[4,4,5,3,4,10],backgroundColor:'rgba(240,128,128,0.7)',borderRadius:2},
+      {label:'Heart Tx',data:[1,2,2,0,3,0],backgroundColor:'rgba(200,150,224,0.7)',borderRadius:2},
+    ]},
+    options:{...boLeg,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10}},grid:{color:gc}}}}
+  });
+
+  // Cardiac ASA
+  new Chart(document.getElementById('cc-asa'),{
+    type:'bar',
+    data:{labels:['LVAD/VAD','Aortic/CPB','Heart Tx','CABG','Valve','EP/Neuro'],
+      datasets:[{data:[4.03,4.00,4.00,3.80,3.75,3.23],
+        backgroundColor:['rgba(240,160,112,0.8)','rgba(240,128,128,0.8)','rgba(200,150,224,0.8)','rgba(59,139,223,0.8)','rgba(93,202,165,0.8)','rgba(150,180,220,0.6)'],borderRadius:3}]},
+    options:{...boBase,indexAxis:'y',scales:{x:{min:2.5,max:4.5,ticks:{color:tc,font:{size:10},callback:v=>v.toFixed(1)},grid:{color:gc}},y:{ticks:{color:tc,font:{size:10}},grid:{display:false}}}}
+  });
+
+  // Liver transplants
+  const lvByres = document.getElementById('lv-byres');
+  const lvAsa = document.getElementById('lv-asa');
+  const lvBlood = document.getElementById('lv-blood');
+  const lvMonthly = document.getElementById('lv-monthly');
+
+  if(lvByres) new Chart(lvByres,{
+    type:'bar',
+    data:{labels:NAMES,datasets:[{data:[3,6,4,7,1,4],backgroundColor:COLORS,borderRadius:4}]},
+    options:{...boBase,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10},stepSize:1},grid:{color:gc}}}}
+  });
+
+  if(lvAsa) new Chart(lvAsa,{
+    type:'bar',
+    data:{labels:NAMES,datasets:[{data:[4.33,3.83,3.50,3.71,4.00,3.75],backgroundColor:COLORS,borderRadius:4}]},
+    options:{...boBase,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{min:3.0,max:4.7,ticks:{color:tc,font:{size:10},callback:v=>v.toFixed(2)},grid:{color:gc}}}}
+  });
+
+  if(lvBlood) new Chart(lvBlood,{
+    type:'bar',
+    data:{labels:NAMES,datasets:[
+      {label:'pRBC',data:[5,12,7,14,3,11],backgroundColor:'rgba(201,64,64,0.7)',borderRadius:2},
+      {label:'FFP',data:[3,10,6,17,1,10],backgroundColor:'rgba(42,109,181,0.7)',borderRadius:2},
+      {label:'Platelets',data:[4,8,5,13,2,9],backgroundColor:'rgba(201,168,76,0.65)',borderRadius:2},
+      {label:'Cryo',data:[3,6,2,7,1,5],backgroundColor:'rgba(139,87,159,0.65)',borderRadius:2},
+    ]},
+    options:{...boLeg,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10}},grid:{color:gc}}}}
+  });
+
+  if(lvMonthly) new Chart(lvMonthly,{
+    type:'bar',
+    data:{
+      labels:['Jan 25','Mar','Apr','May','Jun','Jul','Aug','Oct','Nov','Dec','Jan 26','Feb','Mar'],
+      datasets:[{data:[2,1,1,3,3,1,1,2,2,1,5,2,1],backgroundColor:'rgba(93,202,165,0.7)',borderRadius:3}]
+    },
+    options:{...boBase,scales:{x:{ticks:{color:tc,font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:tc,font:{size:10},stepSize:1},grid:{color:gc}}}}
+  });
+
+  // Build liver case table
+  const liverCases = [
+    {res:'Ali',color:'#3b8bdf',date:'05/17/25',type:'Cadaveric',asa:5,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Ali',color:'#3b8bdf',date:'07/16/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:1,icu:1,emerg:0},
+    {res:'Ali',color:'#3b8bdf',date:'02/24/26',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Hanif G.',color:'#2d9e6b',date:'06/24/25',type:'Cadaveric',asa:4,art:0,cvc:0,pac:0,icu:1,emerg:0},
+    {res:'Hanif G.',color:'#2d9e6b',date:'08/29/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Hanif G.',color:'#2d9e6b',date:'11/29/25',type:'Cadaveric',asa:4,art:2,cvc:1,pac:1,icu:1,emerg:1},
+    {res:'Hanif G.',color:'#2d9e6b',date:'01/10/26',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Hanif G.',color:'#2d9e6b',date:'01/12/26',type:'Cadaveric',asa:4,art:2,cvc:0,pac:1,icu:0,emerg:0},
+    {res:'Hanif G.',color:'#2d9e6b',date:'01/29/26',type:'Cadaveric',asa:3,art:2,cvc:2,pac:0,icu:0,emerg:0},
+    {res:'Lingle',color:'#f0a870',date:'04/01/25',type:'Living donor',asa:3,art:2,cvc:1,pac:1,icu:1,emerg:0},
+    {res:'Lingle',color:'#f0a870',date:'01/09/26',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:0,emerg:0},
+    {res:'Lingle',color:'#f0a870',date:'01/29/26',type:'Cadaveric',asa:3,art:2,cvc:2,pac:0,icu:0,emerg:0},
+    {res:'Lingle',color:'#f0a870',date:'02/13/26',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'01/26/25',type:'Cadaveric',asa:3,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'03/26/25',type:'Cadaveric',asa:4,art:2,cvc:0,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'05/02/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'05/18/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:1},
+    {res:'Orak',color:'#c896e0',date:'10/11/25',type:'Cadaveric',asa:3,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'10/23/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Orak',color:'#c896e0',date:'03/04/26',type:'Cadaveric',asa:4,art:0,cvc:1,pac:1,icu:1,emerg:0},
+    {res:'Tran',color:'#f08080',date:'11/04/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+    {res:'Zucker',color:'#5dcaa5',date:'01/19/25',type:'Cadaveric',asa:4,art:2,cvc:1,pac:0,icu:1,emerg:1},
+    {res:'Zucker',color:'#5dcaa5',date:'06/09/25',type:'Cadaveric',asa:3,art:2,cvc:0,pac:1,icu:1,emerg:0},
+    {res:'Zucker',color:'#5dcaa5',date:'06/29/25',type:'Cadaveric',asa:4,art:0,cvc:0,pac:0,icu:1,emerg:0},
+    {res:'Zucker',color:'#5dcaa5',date:'12/18/25',type:'Cadaveric',asa:4,art:2,cvc:2,pac:0,icu:1,emerg:0},
+  ];
+  const lvTbody = document.getElementById('liver-table-body');
+  if(lvTbody) {
+    liverCases.forEach(c => {
+      const row = document.createElement('tr');
+      const isSpecial = c.asa===5 || c.type==='Living donor' || c.emerg===1;
+      row.innerHTML = `
+        <td><span style="color:${c.color};font-weight:600">${c.res}</span></td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">${c.date}</td>
+        <td><span class="pill ${c.type==='Living donor'?'pill-gold':'pill-blue'}" style="font-size:10px">${c.type}</span></td>
+        <td class="${c.asa>=5?'flag-red':c.asa>=4?'flag-gold':'num'}" style="text-align:right">${c.asa}${c.asa===5?' ★':''}</td>
+        <td class="num-muted" style="text-align:right">${c.art>0?'×'+c.art:'—'}</td>
+        <td class="num-muted" style="text-align:right">${c.cvc>0?'×'+c.cvc:'—'}</td>
+        <td class="${c.pac?'flag-green':'num-muted'}" style="text-align:right">${c.pac?'✓':'—'}</td>
+        <td class="${c.icu?'flag-gold':'num-muted'}" style="text-align:right">${c.icu?'✓':'—'}</td>
+        <td class="${c.emerg?'flag-red':'num-muted'}" style="text-align:right">${c.emerg?'EMERG':'—'}</td>
+      `;
+      lvTbody.appendChild(row);
+    });
+  }
+
+  // Education
+  new Chart(document.getElementById('ec-lec'),{
+    type:'bar',
+    data:{labels:NAMES,datasets:[{data:[6,6,7,8,5,8],backgroundColor:COLORS,borderRadius:4}]},
+    options:{...boBase,scales:{x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{ticks:{color:tc,font:{size:10},stepSize:1},grid:{color:gc}}}}
+  });
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+const PANEL_TITLES = {
+  cohort:'Cohort Overview', cardiac:'Cardiac & High-Acuity', liver:'Liver Transplants', education:'Education & Lectures',
+  ali:'Ali, Sabah', hanif:'Hanif Garces, Diana', lingle:'Lingle, Brock',
+  orak:'Orak, Oleksandr', tran:'Tran, Jessica', zucker:'Zucker, Marc'
+};
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`panel-${id}`).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    if(item.getAttribute('onclick')===`showPanel('${id}')`) item.classList.add('active');
+  });
+  document.getElementById('topbar-title').textContent = PANEL_TITLES[id]||id;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  ['ali','hanif','lingle','orak','tran','zucker'].forEach(buildResPanel);
+  buildSummaryTable();
+  buildCardiacTable();
+  buildLecTable();
+  initCharts();
+});
+</script>
+</body>
+</html>
